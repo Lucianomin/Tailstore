@@ -8,5 +8,11 @@
   },
   "dependencies": {
     "swiper": "^11.0.7"
-  }
+  },
+  "name": "tailstore",
+  "description": "![Tailstore Template](https://spacema-dev.com/tailstore/fullimage.png)",
+  "version": "1.0.0",
+  "main": "tailwind.config.js",
+  "author": "",
+  "license": "ISC"
 }
