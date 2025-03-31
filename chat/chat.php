@@ -116,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send']) && $selectedUs
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px;
+    /*padding: 20px;*/
     background: white;
     margin-left: 25%; /* Offset chat container to avoid overlap with sidebar */
     min-height: 100vh;
