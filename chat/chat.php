@@ -77,23 +77,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send']) && $selectedUs
 <head>
     <title>Chat</title>
     <style>
-    body {
+/* General Styles */
+body {
     font-family: Arial, sans-serif;
     display: flex;
+    flex-direction: column;
     height: 100vh;
     margin: 0;
-    background: #e9f1fc; /* Light blue background */
+    background: #e9f1fc;
 }
 
+/* Sidebar */
 .sidebar {
-    width: 25%;
+    width: 250px;
     background: #ffffff;
     padding: 20px;
     border-right: 1px solid #ccc;
     overflow-y: auto;
-    position: fixed; /* Keep the sidebar fixed */
+    position: fixed;
     height: 100%;
     top: 0;
+    left: -100%;
+    transition: left 0.3s ease-in-out;
 }
 
 .sidebar a {
@@ -101,88 +106,95 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send']) && $selectedUs
     padding: 10px;
     margin: 5px 0;
     text-decoration: none;
-    background: #3b82f6; /* Blue background */
+    background: #3b82f6;
     color: white;
     border-radius: 5px;
     text-align: center;
 }
 
 .sidebar a:hover {
-    background: #2563eb; /* Darker blue on hover */
+    background: #2563eb;
 }
 
+/* Chat Container */
 .chat-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /*padding: 20px;*/
     background: white;
-    margin-left: 25%; /* Offset chat container to avoid overlap with sidebar */
+    margin-left: 250px;
     min-height: 100vh;
     position: relative;
 }
 
+/* Messages */
 .messages {
     flex: 1;
     overflow-y: auto;
-    max-height: 500px;
-    padding-bottom: 20px;
+    padding: 10px;
+    max-height: calc(100vh - 120px);
 }
 
+/* Message Styling */
 .message {
-    padding: 10px;
+    padding: 8px;
     margin: 5px;
     border-radius: 5px;
     max-width: 75%;
     word-wrap: break-word;
+    font-size: 14px;
 }
 
 .sent {
-    background: #3b82f6; /* Blue background for sent messages */
+    background: #3b82f6;
     color: white;
     align-self: flex-end;
 }
 
 .received {
-    background: #e1e8f0; /* Light blue background for received messages */
+    background: #e1e8f0;
     color: black;
     align-self: flex-start;
 }
 
+/* Input & Send Button */
 .input-container {
     display: flex;
-    margin-top: 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 10px;
+    border-top: 1px solid #ccc;
 }
 
-input, button {
+input {
+    flex: 1;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
 }
 
-input {
-    flex: 1;
-}
-
 button {
-    background: #3b82f6; /* Blue button background */
+    background: #3b82f6;
     color: white;
     border: none;
     cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 5px;
 }
 
 button:hover {
-    background: #2563eb; /* Darker blue on hover */
+    background: #2563eb;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .sidebar {
-        width: 100%;
-        position: relative;
-        border-right: none;
-        margin-bottom: 20px;
+        width: 80%;
+        left: -100%;
     }
 
     .chat-container {
@@ -190,44 +202,48 @@ button:hover {
     }
 
     .messages {
-        max-height: 400px; /* Adjust the max-height for smaller screens */
-    }
-
-    .message {
-        max-width: 90%; /* Increase message width on smaller screens */
-    }
-
-    button {
-        width: 100%; /* Make button full width */
-    }
-}
-
-@media (max-width: 480px) {
-    .sidebar a {
-        font-size: 14px; /* Make sidebar links smaller */
+        max-height: calc(100vh - 100px);
     }
 
     .input-container {
-        flex-direction: column;
+        flex-direction: row;
+        gap: 5px;
     }
 
-    input, button {
-        width: 100%; /* Make input and button full width */
+    input {
+        width: 70%;
+    }
+
+    button {
+        width: 30%;
     }
 }
 
-        /* #chat-box {
-    overflow-y: auto; 
-    max-height: 500px; 
-    display: flex;
-    flex-direction: column-reverse; 
-} */
+/* Button to Toggle Sidebar */
+#toggleSidebar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #008069;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
 
-    </style>
+#toggleSidebar:hover {
+    background: #006657;
+}
+
+</style>
+
 </head>
 <body>
 
 <div class="sidebar">
+<button id="toggleSidebar">☰ Menu</button>
+
 <div style="padding: 10px; background: #ddd; border-radius: 5px; text-align: center; margin-bottom: 10px;">
     Logged in as: <strong><?php echo htmlspecialchars($user); ?></strong>
 </div>
@@ -257,9 +273,9 @@ button:hover {
                     </div>
                 <?php endforeach; ?>
             </div>
-        <button onclick="refreshMessages()" style="background: #008069; color: white; padding: 10px; border-radius: 5px; border: none; cursor: pointer;">
-    Refresh Messages
-</button>
+            <div class="refresh-container">
+            <button onclick="refreshMessages()">🔄 Refresh Messages</button>
+        </div>
 
         <form method="POST" class="input-container">
             <input type="text" name="message" placeholder="Type a message..." required>
@@ -309,6 +325,15 @@ function scrollToBottom() {
     chatBox.scrollTop = chatBox.scrollHeight; // Setează poziția de scroll la capătul chat-ului
 }
 
+
+document.getElementById("toggleSidebar").addEventListener("click", function() {
+    var sidebar = document.querySelector(".sidebar");
+    if (sidebar.style.left === "0px") {
+        sidebar.style.left = "-100%";
+    } else {
+        sidebar.style.left = "0px";
+    }
+});
 </script>
 
 </body>
